@@ -1,0 +1,2161 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#2e7d32">
+  <title>किराने की सूची - Hyper 3D Edition</title>
+  <style>
+    :root {
+      --bg: #e2eaf4;
+      --card-bg: #ebf2fa;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --shadow-light: #ffffff;
+      --shadow-dark: rgba(148, 168, 195, 0.65);
+      --primary: #2e7d32;
+      --primary-gradient: linear-gradient(180deg, #3da642 0%, #236927 100%);
+      --primary-shadow: #144417;
+      --accent-star: #f59e0b;
+      --danger: #e53935;
+      --danger-gradient: linear-gradient(180deg, #ef5350 0%, #c62828 100%);
+      --danger-shadow: #7f1d1d;
+      --bill-accent: #0284c7;
+      --bill-gradient: linear-gradient(180deg, #38bdf8 0%, #0284c7 100%);
+      --bill-shadow: #034e77;
+    }
+
+    body.dark-mode {
+      --bg: #0f141c;
+      --card-bg: #19202c;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --shadow-light: rgba(255, 255, 255, 0.06);
+      --shadow-dark: rgba(0, 0, 0, 0.8);
+      --primary: #4caf50;
+      --primary-gradient: linear-gradient(180deg, #4caf50 0%, #2e7d32 100%);
+      --primary-shadow: #143d17;
+      --danger-gradient: linear-gradient(180deg, #e53935 0%, #991b1b 100%);
+      --danger-shadow: #450a0a;
+      --bill-accent: #38bdf8;
+      --bill-gradient: linear-gradient(180deg, #38bdf8 0%, #0369a1 100%);
+      --bill-shadow: #082f49;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      background: radial-gradient(circle at 20% 20%, rgba(255,255,255,0.7) 0%, transparent 40%), var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 12px 6px 90px;
+      transition: background 0.3s;
+      overflow-x: hidden;
+    }
+
+    /* 3D लॉक स्क्रीन */
+    .lock-screen-container {
+      width: 100%;
+      max-width: 420px;
+      background: var(--card-bg);
+      border-radius: 32px;
+      box-shadow: 
+        20px 24px 45px var(--shadow-dark),
+        -16px -16px 36px var(--shadow-light),
+        inset 0 2px 2px rgba(255, 255, 255, 0.9);
+      padding: 36px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: auto;
+      border: 2px solid rgba(255, 255, 255, 0.7);
+    }
+
+    .lock-avatar {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      background: var(--primary-gradient);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      box-shadow: 
+        0 6px 0 var(--primary-shadow),
+        0 12px 24px rgba(46, 125, 50, 0.45),
+        inset 0 2px 3px rgba(255, 255, 255, 0.6);
+      margin-bottom: 14px;
+    }
+
+    .lock-screen-container h2 { font-size: 23px; font-weight: 800; margin-bottom: 4px; text-shadow: 0 1px 1px rgba(255,255,255,0.8); }
+    .lock-hint { font-size: 13px; color: var(--text-muted); margin-bottom: 24px; text-align: center; }
+
+    /* 6 पिन डॉट्स - 3D ग्रूव्ज */
+    .pin-dots {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+    .pin-dot {
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: var(--card-bg);
+      box-shadow: 
+        inset 3px 3px 6px var(--shadow-dark),
+        inset -3px -3px 6px var(--shadow-light);
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .pin-dot.filled {
+      background: var(--primary);
+      box-shadow: 
+        0 0 12px rgba(46, 125, 50, 0.8),
+        inset 0 1px 2px rgba(255,255,255,0.7);
+      transform: scale(1.22);
+    }
+
+    /* 3D कीपैड बटन्स */
+    .keypad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      width: 100%;
+      max-width: 280px;
+    }
+    .key-btn {
+      aspect-ratio: 1;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      background: linear-gradient(145deg, #ffffff 0%, #dfe7f2 100%);
+      color: var(--text);
+      font-size: 24px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 
+        6px 7px 14px var(--shadow-dark),
+        -5px -5px 12px var(--shadow-light),
+        inset 0 2px 2px rgba(255, 255, 255, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .key-btn:active {
+      transform: scale(0.92) translateY(3px);
+      box-shadow: 
+        inset 4px 4px 8px var(--shadow-dark),
+        inset -4px -4px 8px var(--shadow-light);
+    }
+
+    .lock-footer-links {
+      display: flex;
+      gap: 16px;
+      margin-top: 24px;
+    }
+    .text-link-btn {
+      background: none;
+      border: none;
+      color: var(--primary);
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    /* मुख्य 3D ऐप चेसिस */
+    .app-container {
+      width: 100%;
+      max-width: 460px;
+      background: var(--card-bg);
+      border-radius: 34px;
+      box-shadow: 
+        20px 25px 45px var(--shadow-dark),
+        -18px -18px 40px var(--shadow-light),
+        inset 0 2px 2px rgba(255, 255, 255, 0.9);
+      border: 2px solid rgba(255, 255, 255, 0.65);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* 3D हेडर */
+    .header {
+      padding: 18px 20px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--card-bg);
+      border-bottom: 5px solid var(--primary);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    }
+
+    .header-left h1 { 
+      font-size: 24px; 
+      font-weight: 800; 
+      text-shadow: 0 1px 2px rgba(255,255,255,0.9);
+    }
+    
+    .date-badge {
+      display: inline-block;
+      margin-top: 4px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary);
+      background: rgba(46, 125, 50, 0.12);
+      box-shadow: 
+        inset 2px 2px 4px rgba(46, 125, 50, 0.2),
+        inset -2px -2px 4px rgba(255, 255, 255, 0.9);
+    }
+
+    .header-actions { display: flex; gap: 7px; align-items: center; }
+
+    /* 3D आइकन बटन */
+    .icon-btn {
+      width: 40px; height: 40px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      background: linear-gradient(145deg, #ffffff 0%, #dfe7f2 100%);
+      color: var(--text);
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 
+        4px 5px 10px var(--shadow-dark),
+        -4px -4px 9px var(--shadow-light),
+        inset 0 1px 1px rgba(255,255,255,1);
+      user-select: none;
+      transition: all 0.1s ease;
+    }
+    .icon-btn:active { 
+      transform: translateY(3px); 
+      box-shadow: 
+        inset 3px 3px 6px var(--shadow-dark),
+        inset -3px -3px 6px var(--shadow-light);
+    }
+    .icon-btn.active-glow {
+      background: #fff9c4;
+      color: #f57f17;
+      box-shadow: 0 0 14px rgba(255, 215, 0, 0.9);
+    }
+
+    /* 3D डैशबोर्ड कार्ड */
+    .dashboard-card {
+      margin: 12px 16px 6px;
+      padding: 14px 16px;
+      border-radius: 24px;
+      background: linear-gradient(145deg, #ffffff 0%, #e7eff8 100%);
+      box-shadow: 
+        6px 8px 18px var(--shadow-dark),
+        -6px -6px 16px var(--shadow-light),
+        inset 0 2px 2px rgba(255, 255, 255, 1);
+      border: 1.5px solid rgba(255, 255, 255, 0.8);
+      transition: all 0.3s;
+    }
+    .dashboard-card.overbudget { border: 2.5px solid var(--danger); }
+
+    .budget-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      text-align: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .budget-box {
+      padding: 8px 4px;
+      border-radius: 14px;
+      background: var(--card-bg);
+      box-shadow: 
+        inset 3px 3px 6px var(--shadow-dark),
+        inset -3px -3px 6px var(--shadow-light);
+      cursor: pointer;
+    }
+    .budget-box span { display: block; font-size: 11px; color: var(--text-muted); font-weight: 700; }
+    .budget-box strong { font-size: 16px; font-weight: 900; }
+
+    .budget-alert {
+      font-size: 12px;
+      color: var(--danger);
+      text-align: center;
+      font-weight: 800;
+      margin-bottom: 8px;
+      display: none;
+    }
+
+    /* 3D ग्रूव्ड़ प्रोग्रेस बार */
+    .progress-bar-bg {
+      height: 10px;
+      background: #cfd9e5;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 8px;
+      box-shadow: 
+        inset 2px 2px 5px rgba(0, 0, 0, 0.2),
+        inset -1px -1px 3px rgba(255, 255, 255, 0.8);
+    }
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--primary-gradient);
+      box-shadow: 0 1px 4px rgba(46, 125, 50, 0.6);
+      transition: width 0.3s ease;
+    }
+
+    /* 3D सर्च बॉक्स व फ़िल्टर */
+    .filter-section {
+      padding: 8px 16px 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 12px 16px;
+      font-size: 15px;
+      border: none;
+      border-radius: 16px;
+      background: var(--card-bg);
+      color: var(--text);
+      box-shadow: 
+        inset 4px 4px 8px var(--shadow-dark),
+        inset -4px -4px 8px var(--shadow-light);
+      outline: none;
+      font-weight: 600;
+    }
+
+    .category-pills {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+    .category-pills::-webkit-scrollbar { display: none; }
+
+    .cat-chip {
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+      cursor: pointer;
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      background: linear-gradient(145deg, #ffffff 0%, #dfe7f2 100%);
+      color: var(--text-muted);
+      box-shadow: 
+        3px 4px 8px var(--shadow-dark),
+        -3px -3px 7px var(--shadow-light);
+      transition: all 0.1s ease;
+    }
+    .cat-chip.active { 
+      background: var(--primary-gradient); 
+      color: #fff;
+      border: none;
+      box-shadow: 
+        inset 2px 2px 4px rgba(0,0,0,0.3),
+        0 2px 6px rgba(46, 125, 50, 0.4);
+    }
+
+    /* 3D क्विक चिप्स */
+    .quick-add-row {
+      padding: 2px 16px 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .quick-title { font-size: 12px; font-weight: 800; color: var(--text-muted); white-space: nowrap; }
+    .quick-chip {
+      padding: 5px 12px;
+      font-size: 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(46, 125, 50, 0.4);
+      background: linear-gradient(145deg, #ffffff 0%, #ebf5ec 100%);
+      color: var(--primary);
+      cursor: pointer;
+      white-space: nowrap;
+      font-weight: 700;
+      box-shadow: 
+        2px 3px 6px var(--shadow-dark),
+        -2px -2px 5px var(--shadow-light);
+    }
+    .quick-chip:active { transform: translateY(2px); }
+
+    /* 3D स्मार्ट इनपुट कार्ड */
+    .smart-input-card {
+      margin: 4px 16px 10px;
+      padding: 14px;
+      background: linear-gradient(145deg, #ffffff 0%, #e7eff8 100%);
+      border-radius: 24px;
+      box-shadow: 
+        6px 8px 18px var(--shadow-dark),
+        -6px -6px 16px var(--shadow-light),
+        inset 0 1px 1px rgba(255, 255, 255, 1);
+      border: 1.5px solid rgba(255, 255, 255, 0.8);
+    }
+
+    .smart-input-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .smart-text-input {
+      width: 100%;
+      padding: 13px 16px;
+      font-size: 15px;
+      border: none;
+      border-radius: 16px;
+      background: var(--card-bg);
+      color: var(--text);
+      box-shadow: 
+        inset 4px 4px 8px var(--shadow-dark),
+        inset -4px -4px 8px var(--shadow-light);
+      outline: none;
+      font-weight: 600;
+    }
+
+    .mic-btn {
+      width: 48px; height: 48px;
+      background: linear-gradient(145deg, #ffffff 0%, #dfe7f2 100%);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      border-radius: 16px;
+      cursor: pointer;
+      font-size: 22px;
+      box-shadow: 
+        4px 5px 10px var(--shadow-dark),
+        -4px -4px 9px var(--shadow-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.1s ease;
+    }
+    .mic-btn:active { transform: translateY(3px); }
+    .mic-btn.listening { animation: pulse 0.8s infinite alternate; background: #ffebee; color: #d32f2f; }
+    @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.1); } }
+
+    /* असली 3D पुश बटन */
+    .btn-add-primary {
+      padding: 0 18px;
+      height: 48px;
+      background: var(--primary-gradient);
+      color: #fff;
+      border: none;
+      border-radius: 16px;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 
+        0 5px 0 var(--primary-shadow),
+        0 8px 16px rgba(46, 125, 50, 0.4),
+        inset 0 2px 2px rgba(255, 255, 255, 0.4);
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .btn-add-primary:active { 
+      transform: translateY(4px); 
+      box-shadow: 
+        0 1px 0 var(--primary-shadow),
+        0 3px 6px rgba(46, 125, 50, 0.3); 
+    }
+
+    /* 3D लिस्ट कार्ड्स */
+    .item-list { padding: 4px 16px; min-height: 50px; }
+
+    .list-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      margin: 10px 0;
+      background: linear-gradient(145deg, #ffffff 0%, #eef3f9 100%);
+      border-radius: 20px;
+      box-shadow: 
+        5px 7px 15px var(--shadow-dark),
+        -5px -5px 12px var(--shadow-light),
+        inset 0 1px 1px rgba(255, 255, 255, 1);
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      user-select: none;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .list-item:hover { transform: translateY(-2px); }
+    .list-item.urgent { border-left: 6px solid var(--accent-star); }
+
+    .item-left {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      cursor: pointer;
+      flex: 1;
+    }
+
+    /* 3D कुशन चेकबॉक्स */
+    .checkbox {
+      width: 30px; height: 30px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .checkbox.unchecked {
+      border: 2.5px solid #e53935;
+      background: linear-gradient(145deg, #ffffff 0%, #f9f9f9 100%);
+      box-shadow: 
+        3px 4px 8px rgba(229, 57, 53, 0.25),
+        -2px -2px 6px var(--shadow-light),
+        inset 0 1px 1px #fff;
+    }
+    .checkbox.checked {
+      background: var(--primary-gradient);
+      border: 2px solid var(--primary);
+      box-shadow: 
+        0 4px 10px rgba(46, 125, 50, 0.5),
+        inset 0 2px 2px rgba(255, 255, 255, 0.5),
+        inset 0 -2px 3px rgba(0, 0, 0, 0.3);
+      transform: scale(1.05);
+    }
+    .checkbox.checked::after { 
+      content: '✓'; 
+      color: #fff; 
+      font-size: 18px; 
+      font-weight: 900; 
+      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    }
+
+    .item-info { display: flex; flex-direction: column; gap: 3px; }
+    .item-title-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    
+    .item-text { font-size: 20px; font-weight: 800; color: var(--text); }
+    .list-item.done .item-text { text-decoration: line-through; color: var(--text-muted); opacity: 0.75; }
+
+    /* 3D बैज */
+    .badge { 
+      font-size: 11px; 
+      padding: 3px 9px; 
+      border-radius: 10px; 
+      font-weight: 800; 
+      box-shadow: 
+        1px 2px 4px rgba(0,0,0,0.06),
+        inset 0 1px 1px rgba(255,255,255,0.8);
+    }
+    .badge-qty { background: #e0f2fe; color: #0284c7; }
+    .badge-price { background: #fef3c7; color: #b45309; }
+    .badge-shop { background: #ede9fe; color: #7c3aed; }
+    .badge-urgent { background: #fee2e2; color: #dc2626; }
+
+    .item-actions { display: flex; gap: 8px; align-items: center; }
+    
+    /* 3D सब-बटन */
+    .action-sub-btn {
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      background: linear-gradient(145deg, #ffffff 0%, #dfe7f2 100%);
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 800;
+      box-shadow: 
+        3px 4px 8px var(--shadow-dark),
+        -3px -3px 6px var(--shadow-light);
+      transition: all 0.1s ease;
+    }
+    .action-sub-btn:active {
+      transform: translateY(2px);
+      box-shadow: 
+        inset 2px 2px 4px var(--shadow-dark),
+        inset -2px -2px 4px var(--shadow-light);
+    }
+
+    /* 3D ग्रूव्ड़ डिवाइडर */
+    .collapsible-divider {
+      margin: 14px 16px 8px;
+      padding: 10px 16px;
+      border-radius: 18px;
+      background: #cfd9e5;
+      color: #334155;
+      font-size: 13px;
+      font-weight: 800;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      box-shadow: 
+        inset 3px 3px 6px rgba(100, 116, 139, 0.4),
+        inset -3px -3px 6px rgba(255, 255, 255, 0.9);
+      user-select: none;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .divider-btn-group { display: flex; gap: 8px; align-items: center; }
+
+    .bill-create-btn {
+      background: var(--bill-gradient);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 5px 12px;
+      font-size: 11px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      box-shadow: 
+        0 3px 0 var(--bill-shadow),
+        0 4px 8px rgba(2, 132, 199, 0.35);
+    }
+    .bill-create-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--bill-shadow); }
+
+    .clear-all-done-btn {
+      background: var(--danger-gradient);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 5px 12px;
+      font-size: 11px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      box-shadow: 
+        0 3px 0 var(--danger-shadow),
+        0 4px 8px rgba(229, 57, 53, 0.35);
+    }
+    .clear-all-done-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--danger-shadow); }
+
+    /* बॉटम 3D पुश बार */
+    .bottom-bar {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr;
+      gap: 10px;
+      padding: 12px 16px 18px;
+    }
+
+    .btn-action {
+      padding: 14px 8px;
+      border-radius: 18px;
+      border: none;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.1s ease;
+    }
+    .btn-action:active { transform: translateY(3px); }
+    
+    .btn-wa { 
+      background: linear-gradient(180deg, #2ae771 0%, #159c47 100%); 
+      color: #fff; 
+      box-shadow: 
+        0 4px 0 #0d692e, 
+        0 6px 12px rgba(37, 211, 102, 0.4),
+        inset 0 1px 1px rgba(255,255,255,0.5);
+    }
+    .btn-wa:active { box-shadow: 0 1px 0 #0d692e; }
+
+    .btn-print, .btn-copy { 
+      background: linear-gradient(145deg, #ffffff 0%, #dfe7f2 100%); 
+      color: var(--text); 
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 
+        0 4px 0 #b3c2d4, 
+        0 6px 12px var(--shadow-dark),
+        inset 0 1px 1px #fff;
+    }
+    .btn-print:active, .btn-copy:active { box-shadow: 0 1px 0 #b3c2d4; }
+
+    /* 3D ड्रॉपडाउन मेनू */
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      top: 65px; right: 16px;
+      background: var(--card-bg);
+      border-radius: 20px;
+      box-shadow: 
+        0 18px 36px rgba(0, 0, 0, 0.25),
+        inset 0 1px 1px rgba(255, 255, 255, 0.8);
+      z-index: 150;
+      width: 270px;
+      overflow: hidden;
+      border: 2px solid rgba(255, 255, 255, 0.7);
+    }
+    .dropdown-menu.show { display: block; }
+    .dropdown-menu button {
+      width: 100%;
+      padding: 13px 18px;
+      border: none;
+      background: transparent;
+      text-align: left;
+      font-size: 13px;
+      color: var(--text);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      border-bottom: 1px solid rgba(0,0,0,0.04);
+    }
+    .dropdown-menu button:hover { background: rgba(0,0,0,0.05); }
+
+    .input-with-eye {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+    .eye-btn {
+      position: absolute;
+      right: 14px;
+      background: none;
+      border: none;
+      font-size: 19px;
+      cursor: pointer;
+      color: var(--text-muted);
+      user-select: none;
+    }
+
+    /* 3D फ्लोटिंग मोडल */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 500;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal-card {
+      width: 100%;
+      max-width: 410px;
+      background: var(--card-bg);
+      border-radius: 28px;
+      padding: 24px;
+      box-shadow: 
+        0 25px 50px -12px rgba(0, 0, 0, 0.45),
+        inset 0 2px 2px rgba(255, 255, 255, 0.9);
+      border: 2px solid rgba(255, 255, 255, 0.75);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      max-height: 88vh;
+    }
+    .modal-card h3 { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+
+    /* 3D पर्ची व कचरा पेटी कार्ड्स */
+    .trash-list-container, .bills-list-container {
+      overflow-y: auto;
+      max-height: 52vh;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-right: 4px;
+    }
+    .trash-item, .bill-card {
+      display: flex;
+      flex-direction: column;
+      padding: 14px;
+      background: linear-gradient(145deg, #ffffff 0%, #edf3fa 100%);
+      border-radius: 18px;
+      box-shadow: 
+        4px 6px 12px var(--shadow-dark),
+        -3px -3px 8px var(--shadow-light);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      gap: 8px;
+    }
+    
+    .trash-date-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px !important;
+      font-weight: 800;
+      color: #b91c1c !important;
+      background: #fee2e2;
+      padding: 4px 9px;
+      border-radius: 10px;
+      width: fit-content;
+      box-shadow: inset 1px 1px 2px rgba(0,0,0,0.08);
+    }
+
+    .bill-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1.5px dashed rgba(0,0,0,0.1);
+      padding-bottom: 8px;
+    }
+    .bill-shop-name { font-size: 17px; font-weight: 900; color: var(--bill-accent); }
+    .bill-date-stamp { font-size: 12px; color: var(--text-muted); font-weight: 700; margin-top: 2px; }
+    .bill-items-summary { font-size: 13px; color: var(--text); line-height: 1.5; font-weight: 600; }
+    
+    .bill-total-row {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 900;
+      font-size: 15px;
+      color: var(--primary);
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px solid rgba(0,0,0,0.08);
+    }
+    .bill-photo-thumb {
+      width: 100%;
+      max-height: 160px;
+      object-fit: cover;
+      border-radius: 14px;
+      margin-top: 8px;
+      cursor: pointer;
+      border: 2px solid rgba(255,255,255,0.9);
+      box-shadow: 2px 4px 8px rgba(0,0,0,0.15);
+    }
+    .bill-actions-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .undo-toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #1e293b;
+      color: #fff;
+      padding: 14px 22px;
+      border-radius: 35px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.45);
+      z-index: 600;
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      font-size: 14px;
+      font-weight: 700;
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+    .undo-toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    .undo-btn { 
+      background: #ffb74d; 
+      border: none; 
+      color: #000; 
+      font-weight: 900; 
+      padding: 6px 14px; 
+      border-radius: 14px; 
+      cursor: pointer; 
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    #confettiCanvas { position: fixed; inset: 0; pointer-events: none; z-index: 999; }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-10px); }
+      40%, 80% { transform: translateX(10px); }
+    }
+    .shake { animation: shake 0.4s ease-in-out; }
+  </style>
+</head>
+<body>
+
+  <canvas id="confettiCanvas"></canvas>
+
+  <datalist id="popularKirana">
+    <option value="आटा"><option value="चावल"><option value="अरहर दाल"><option value="मूंग दाल"><option value="चना दाल">
+    <option value="चीनी"><option value="नमक"><option value="हल्दी पाउडर"><option value="धनिया पाउडर"><option value="लाल मिर्च पाउडर">
+    <option value="जीरा"><option value="सरसों तेल"><option value="रिफाइंड तेल"><option value="देसी घी"><option value="चाय पत्ती">
+    <option value="कॉफी"><option value="दूध"><option value="दही"><option value="पनीर"><option value="मक्खन">
+    <option value="आलू"><option value="प्याज"><option value="टमाटर"><option value="लहसुन"><option value="अदरक"><option value="हरी मिर्च">
+    <option value="नहाने का साबुन"><option value="सर्फ़ एक्सेल"><option value="बर्तन बार"><option value="टूथपेस्ट"><option value="शैम्पू">
+    <option value="बिस्कुट"><option value="नमकीन"><option value="मैगी"><option value="पोहा"><option value="सूजी"><option value="मैदा">
+  </datalist>
+
+  <!-- 1. 3D लॉक स्क्रीन -->
+  <div class="lock-screen-container" id="lockScreen">
+    <div class="lock-avatar">🔒</div>
+    <h2>किराना सुरक्षा लॉक</h2>
+    <p class="lock-hint" id="lockStatusMsg">कृपया 6-अंकों का सुरक्षा पिन दर्ज करें</p>
+
+    <div class="pin-dots" id="pinDots">
+      <div class="pin-dot"></div>
+      <div class="pin-dot"></div>
+      <div class="pin-dot"></div>
+      <div class="pin-dot"></div>
+      <div class="pin-dot"></div>
+      <div class="pin-dot"></div>
+    </div>
+
+    <div class="keypad">
+      <button class="key-btn" onclick="pressPin('1')">1</button>
+      <button class="key-btn" onclick="pressPin('2')">2</button>
+      <button class="key-btn" onclick="pressPin('3')">3</button>
+      <button class="key-btn" onclick="pressPin('4')">4</button>
+      <button class="key-btn" onclick="pressPin('5')">5</button>
+      <button class="key-btn" onclick="pressPin('6')">6</button>
+      <button class="key-btn" onclick="pressPin('7')">7</button>
+      <button class="key-btn" onclick="pressPin('8')">8</button>
+      <button class="key-btn" onclick="pressPin('9')">9</button>
+      <button class="key-btn" style="font-size:16px;" onclick="clearPin()">C</button>
+      <button class="key-btn" onclick="pressPin('0')">0</button>
+      <button class="key-btn" onclick="backspacePin()">⌫</button>
+    </div>
+
+    <div class="lock-footer-links">
+      <button class="text-link-btn" onclick="openPasswordModal()">🔑 पासवर्ड बदलें</button>
+      <span>•</span>
+      <button class="text-link-btn" onclick="forgotPin()" style="color:var(--text-muted);">पिन भूल गए?</button>
+    </div>
+  </div>
+
+  <!-- 2. मुख्य 3D ऐप कंटेनर -->
+  <div class="app-container" id="appContainer" style="display:none;">
+    <div class="header">
+      <div class="header-left">
+        <h1>किराने की सूची</h1>
+        <div class="date-badge" id="todayDate">📅 लोड हो रहा है...</div>
+      </div>
+      <div class="header-actions">
+        <!-- 3D 🧾 दुकानदार की पर्चियां बटन -->
+        <button class="icon-btn" onclick="openBillsModal()" title="दुकानदार की पर्चियां" style="color:var(--bill-accent); font-size:18px;">🧾</button>
+        <!-- 3D 🗑️ रीसायकल बिन बटन -->
+        <button class="icon-btn" onclick="openTrashModal()" title="रीसायकल बिन" style="color:#d32f2f;">🗑️</button>
+        <button class="icon-btn" onclick="openPasswordModal()" title="पासवर्ड बदलें" style="color:#f59e0b; font-size:18px;">🔑</button>
+        <button class="icon-btn" onclick="logoutApp()" title="लॉगआउट" style="color:#64748b;">🔒</button>
+        <button class="icon-btn" id="wakeLockBtn" onclick="toggleWakeLock()" title="स्क्रीन ऑन रखें">💡</button>
+        <button class="icon-btn" onclick="toggleTheme()" title="थीम बदलें">🌓</button>
+        <button class="icon-btn" onclick="toggleSound()" id="soundBtn" title="आवाज़ ऑन/ऑफ">🔔</button>
+        <button class="icon-btn" onclick="toggleMenu()" title="मेन्यू">&#8942;</button>
+      </div>
+    </div>
+
+    <div class="dropdown-menu" id="dropdownMenu">
+      <button onclick="openBillsModal()" style="color:var(--bill-accent);">🧾 दुकानदार की पर्चियां (<span id="billsMenuCount">0</span>)</button>
+      <button onclick="openTrashModal()" style="color:#d32f2f;">🗑️ रीसायकल बिन (<span id="trashMenuCount">0</span>)</button>
+      <button onclick="openPasswordModal()" style="color:#f59e0b;">🔑 पासवर्ड / पिन बदलें</button>
+      <button onclick="openBudgetModal()">🎯 बजट सीमा तय करें</button>
+      <button onclick="confirmResetForNextMonth()">🔄 अगले महीने के लिए रीसेट करें</button>
+      <button onclick="sortItems('name')">🔤 नाम से क्रमबद्ध करें</button>
+      <button onclick="sortItems('price')">💰 कीमत से क्रमबद्ध करें</button>
+      <button onclick="exportJSON()">📥 बैकअप डाउनलोड करें</button>
+      <button onclick="document.getElementById('importFile').click()">📤 बैकअप लोड करें</button>
+      <button onclick="clearCompleted()">🧹 खरीदे सामान हटाएं</button>
+      <button onclick="logoutApp()" style="color:#e53935;">🔒 लॉगआउट (Lock App)</button>
+      <button onclick="confirmClearAll()" style="color:#d32f2f;">🗑️ पूरी लिस्ट खाली करें</button>
+    </div>
+    <input type="file" id="importFile" style="display:none;" onchange="importJSON(event)">
+
+    <!-- 3D डैशबोर्ड व बजट कार्ड -->
+    <div class="dashboard-card" id="dashboardCard">
+      <div class="budget-alert" id="budgetAlert">⚠️ तय बजट से अधिक खर्च हो रहा है!</div>
+      <div class="budget-row">
+        <div class="budget-box" onclick="openBudgetModal()" title="बजट बदलने के लिए दबाएं">
+          <span>कुल खर्च <span id="targetBudgetDisplay" style="font-size:9px; color:var(--primary);">(बजट सेट करें)</span></span>
+          <strong id="totalBudget">₹0</strong>
+        </div>
+        <div class="budget-box" style="color:var(--primary);">
+          <span>खरीद लिया</span>
+          <strong id="spentBudget">₹0</strong>
+        </div>
+        <div class="budget-box" style="color:#d32f2f;">
+          <span>बाकी राशि</span>
+          <strong id="pendingBudget">₹0</strong>
+        </div>
+      </div>
+      <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:700; color:var(--text-muted);">
+        <span id="statItems">कुल सामान: 0</span>
+        <span id="statProgress">0% पूर्ण</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressBar"></div>
+      </div>
+    </div>
+
+    <!-- 3D सर्च और फ़िल्टर -->
+    <div class="filter-section">
+      <input type="text" class="search-input" id="searchInput" placeholder="🔍 सामान खोजें..." oninput="renderItems()">
+      <div class="category-pills">
+        <button class="cat-chip active" onclick="setCategoryFilter('सब')">सब</button>
+        <button class="cat-chip" onclick="setCategoryFilter('किराना')">किराना</button>
+        <button class="cat-chip" onclick="setCategoryFilter('सब्जी मंडी')">सब्जी मंडी</button>
+        <button class="cat-chip" onclick="setCategoryFilter('डेयरी')">डेयरी</button>
+        <button class="cat-chip" onclick="setCategoryFilter('सुपरमार्ट')">सुपरमार्ट</button>
+      </div>
+    </div>
+
+    <!-- 3D क्विक चिप्स -->
+    <div class="quick-add-row">
+      <span class="quick-title">जल्दी जोड़ें:</span>
+      <button class="quick-chip" onclick="quickAdd('दूध', '1 लीटर', 'डेयरी')">+ दूध</button>
+      <button class="quick-chip" onclick="quickAdd('आलू', '2 किलो', 'सब्जी मंडी')">+ आलू</button>
+      <button class="quick-chip" onclick="quickAdd('प्याज', '1 किलो', 'सब्जी मंडी')">+ प्याज</button>
+      <button class="quick-chip" onclick="quickAdd('चीनी', '1 किलो', 'किराना')">+ चीनी</button>
+      <button class="quick-chip" onclick="quickAdd('सरसों तेल', '1 लीटर', 'किराना')">+ तेल</button>
+      <button class="quick-chip" onclick="quickAdd('नमक', '1 पैकेट', 'किराना')">+ नमक</button>
+    </div>
+
+    <!-- 3D स्मार्ट इनपुट कार्ड -->
+    <div class="smart-input-card">
+      <div class="smart-input-row">
+        <input type="text" id="smartInput" list="popularKirana" class="smart-text-input" placeholder="सामान लिखें या बोलें (उदा: 2 किलो आलू 40)...">
+        <button class="mic-btn" id="micBtn" onclick="startVoiceInput()" title="बोलकर लिखें">🎙️</button>
+        <button class="btn-add-primary" onclick="addSmartItem()">+ जोड़ें</button>
+      </div>
+    </div>
+
+    <!-- बाकी सामान (Pending List) -->
+    <div class="item-list" id="pendingList"></div>
+
+    <!-- 3D ग्रूव्ड़ खरीदा हुआ सामान पट्टी -->
+    <div class="collapsible-divider" id="completedDivider" onclick="toggleCompletedSection()">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span id="completedDividerArrow">▼</span>
+        <span id="completedDividerTitle">✅ खरीदा सामान (0)</span>
+      </div>
+      <div class="divider-btn-group">
+        <button class="bill-create-btn" onclick="event.stopPropagation(); startBillFromChecked();" title="इस सामान की दुकानदार पर्ची बनाएं">
+          🧾 पर्ची बनाएं
+        </button>
+        <button class="clear-all-done-btn" onclick="event.stopPropagation(); clearCompleted();" title="खरीदे हुए सभी सामान रीसायकल बिन में भेजें">
+          🗑️ हटाएं
+        </button>
+      </div>
+    </div>
+
+    <div class="item-list" id="completedList"></div>
+
+    <!-- 3D बॉटम बार -->
+    <div class="bottom-bar">
+      <button class="btn-action btn-wa" onclick="shareWhatsApp()">📲 WhatsApp</button>
+      <button class="btn-action btn-print" onclick="window.print()">🖨️ पर्ची प्रिंट</button>
+      <button class="btn-action btn-copy" onclick="copyListText()">📋 कॉपी</button>
+    </div>
+  </div>
+
+  <!-- 3. 3D दुकानदार की पर्चियां मोडल -->
+  <div class="modal-overlay" id="billsModal">
+    <div class="modal-card">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3>🧾 दुकानदार की पर्चियां</h3>
+        <button class="action-sub-btn" onclick="closeBillsModal()">✕</button>
+      </div>
+
+      <div style="display:flex; gap:8px; border-bottom:1.5px solid rgba(0,0,0,0.06); padding-bottom:8px;">
+        <button class="cat-chip active" id="tabSavedBills" onclick="switchBillTab('saved')">📋 सभी पर्चियां</button>
+        <button class="cat-chip" id="tabNewBill" onclick="switchBillTab('new')">➕ नई पर्ची जोड़ें</button>
+      </div>
+
+      <div id="billsListView" class="bills-list-container"></div>
+
+      <div id="newBillFormView" style="display:none; flex-direction:column; gap:12px; overflow-y:auto; max-height:55vh;">
+        <input type="text" id="billShopName" class="smart-text-input" placeholder="🏪 दुकानदार का नाम (उदा: गुप्ता किराना)...">
+        
+        <div style="display:flex; gap:10px;">
+          <input type="date" id="billDateInput" class="smart-text-input">
+          <input type="number" id="billTotalAmount" class="smart-text-input" placeholder="₹ कुल बिल राशि" inputmode="decimal">
+        </div>
+
+        <textarea id="billItemsText" class="smart-text-input" rows="4" placeholder="सामान का विवरण (उदा:
+1. चावल 5kg - ₹250
+2. दाल 1kg - ₹120)"></textarea>
+
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <label style="font-size:12px; font-weight:800; color:var(--text-muted);">📷 पर्ची की फोटो अपलोड करें (वैकल्पिक):</label>
+          <input type="file" id="billPhotoInput" accept="image/*" class="smart-text-input" onchange="previewBillPhoto(event)">
+          <img id="billPhotoPreview" class="bill-photo-thumb" style="display:none;" alt="पर्ची फोटो">
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top:8px;">
+          <button class="btn-add-primary" style="flex:1;" onclick="saveNewShopBill()">💾 पर्ची सेव करें</button>
+          <button class="action-sub-btn" style="flex:0.8;" onclick="switchBillTab('saved')">रद्द करें</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. 3D रीसायकल बिन मोडल -->
+  <div class="modal-overlay" id="trashModal">
+    <div class="modal-card">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3>🗑️ रीसायकल बिन (कचरा पेटी)</h3>
+        <button class="action-sub-btn" onclick="closeTrashModal()">✕</button>
+      </div>
+      <p style="font-size:12px; color:var(--text-muted); font-weight:600;">हटाया गया सामान यहाँ तारीख सहित सुरक्षित रहता है।</p>
+      
+      <div class="trash-list-container" id="trashListContent"></div>
+
+      <div style="display:flex; gap:10px; margin-top:10px;">
+        <button class="btn-add-primary" style="background:var(--danger-gradient); box-shadow:0 4px 0 var(--danger-shadow); flex:1;" onclick="emptyTrashPermanently()">
+          ⚠️ बिन हमेशा के लिए खाली करें
+        </button>
+        <button class="action-sub-btn" style="flex:0.8;" onclick="closeTrashModal()">बंद करें</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. 3D पासवर्ड मोडल -->
+  <div class="modal-overlay" id="passwordModal">
+    <div class="modal-card">
+      <h3>🔑 पासवर्ड / पिन बदलें</h3>
+      <div class="input-with-eye">
+        <input type="password" id="oldPassInput" class="smart-text-input" placeholder="वर्तमान पासवर्ड दर्ज करें">
+        <button class="eye-btn" onclick="togglePasswordVisibility('oldPassInput', this)">👁️</button>
+      </div>
+      <div class="input-with-eye">
+        <input type="password" id="newPassInput" class="smart-text-input" placeholder="नया 6-अंकों का पासवर्ड" maxlength="6">
+        <button class="eye-btn" onclick="togglePasswordVisibility('newPassInput', this)">👁️</button>
+      </div>
+      <div class="input-with-eye">
+        <input type="password" id="confirmPassInput" class="smart-text-input" placeholder="नया पासवर्ड दोबारा दर्ज करें" maxlength="6">
+        <button class="eye-btn" onclick="togglePasswordVisibility('confirmPassInput', this)">👁️</button>
+      </div>
+      <div style="display:flex; gap:10px; margin-top:8px;">
+        <button class="btn-add-primary" style="flex:1;" onclick="submitPasswordChange()">नया डिफ़ॉल्ट सेट करें</button>
+        <button class="action-sub-btn" style="flex:1;" onclick="closePasswordModal()">रद्द करें</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. 3D बजट मोडल -->
+  <div class="modal-overlay" id="budgetModal">
+    <div class="modal-card">
+      <h3>🎯 अधिकतम बजट तय करें</h3>
+      <input type="number" id="budgetInputModal" class="smart-text-input" placeholder="₹ राशि दर्ज करें" inputmode="decimal">
+      <div style="display:flex; gap:10px; margin-top:8px;">
+        <button class="btn-add-primary" style="flex:1;" onclick="saveBudgetLimit()">सुरक्षित करें</button>
+        <button class="action-sub-btn" style="flex:1;" onclick="closeBudgetModal()">रद्द करें</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. 3D एडिट मोडल -->
+  <div class="modal-overlay" id="editModal">
+    <div class="modal-card">
+      <h3>सामान में सुधार करें</h3>
+      <input type="hidden" id="editId">
+      <input type="text" id="editName" class="smart-text-input" placeholder="नाम">
+      <div style="display:flex; gap:10px;">
+        <input type="text" id="editQty" class="smart-text-input" placeholder="मात्रा">
+        <input type="number" id="editPrice" class="smart-text-input" placeholder="₹ कीमत">
+      </div>
+      <select id="editCat" class="smart-text-input">
+        <option value="किराना">🏪 किराना</option>
+        <option value="सब्जी मंडी">🥦 सब्जी मंडी</option>
+        <option value="डेयरी">🥛 डेयरी</option>
+        <option value="सुपरमार्ट">🛒 सुपरमार्ट</option>
+      </select>
+      <div style="display:flex; gap:10px; margin-top:8px;">
+        <button class="btn-add-primary" style="flex:1;" onclick="saveEdit()">सुरक्षित करें</button>
+        <button class="action-sub-btn" style="flex:1;" onclick="closeEditModal()">रद्द करें</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="undo-toast" id="undoToast">
+    <span id="undoMsg">सामान हटाया गया</span>
+    <button class="undo-btn" onclick="undoLastAction()">वापस लाएं ↩</button>
+  </div>
+
+  <script>
+    // ================= पासवर्ड ऑथेंटिकेशन =================
+    let currentEnteredPin = "";
+    let appPassword = localStorage.getItem('kirana_master_default_pin') || "266311";
+
+    function updatePinDots() {
+      const dots = document.querySelectorAll('#pinDots .pin-dot');
+      dots.forEach((dot, index) => {
+        if (index < currentEnteredPin.length) dot.classList.add('filled');
+        else dot.classList.remove('filled');
+      });
+    }
+
+    function pressPin(digit) {
+      if (currentEnteredPin.length < 6) {
+        currentEnteredPin += digit;
+        playBeep(700, 0.05);
+        vibrate(30);
+        updatePinDots();
+
+        if (currentEnteredPin.length === 6) setTimeout(verifyPin, 150);
+      }
+    }
+
+    function backspacePin() {
+      if (currentEnteredPin.length > 0) {
+        currentEnteredPin = currentEnteredPin.slice(0, -1);
+        playBeep(400, 0.05);
+        vibrate(20);
+        updatePinDots();
+      }
+    }
+
+    function clearPin() {
+      currentEnteredPin = "";
+      playBeep(300, 0.06);
+      updatePinDots();
+    }
+
+    function verifyPin() {
+      if (currentEnteredPin === appPassword) {
+        playBeep(900, 0.12);
+        vibrate(40);
+        sessionStorage.setItem('kirana_is_unlocked', 'true');
+        document.getElementById('lockScreen').style.display = 'none';
+        document.getElementById('appContainer').style.display = 'flex';
+        currentEnteredPin = "";
+        updatePinDots();
+        renderItems();
+        updateTrashBadge();
+        updateBillsBadge();
+      } else {
+        playBeep(250, 0.25);
+        vibrate([80, 50, 80]);
+        const pinContainer = document.getElementById('pinDots');
+        pinContainer.classList.add('shake');
+        document.getElementById('lockStatusMsg').innerHTML = "<span style='color:#e53935; font-weight:bold;'>❌ गलत पासवर्ड! पुनः प्रयास करें।</span>";
+        setTimeout(() => {
+          pinContainer.classList.remove('shake');
+          clearPin();
+        }, 500);
+      }
+    }
+
+    function logoutApp() {
+      sessionStorage.removeItem('kirana_is_unlocked');
+      document.getElementById('appContainer').style.display = 'none';
+      document.getElementById('lockScreen').style.display = 'flex';
+      document.getElementById('lockStatusMsg').innerText = "कृपया 6-अंकों का सुरक्षा पिन दर्ज करें";
+      clearPin();
+      toggleMenu(false);
+      vibrate(50);
+    }
+
+    function forgotPin() {
+      const activeDefault = localStorage.getItem('kirana_master_default_pin') || "266311";
+      if (confirm("क्या आप पासवर्ड को अपने सेट किए गए डिफ़ॉल्ट पासवर्ड पर रीसेट करना चाहते हैं?")) {
+        appPassword = activeDefault;
+        alert("पासवर्ड सफलतापूर्वक रीसेट हो गया है!");
+        clearPin();
+      }
+    }
+
+    function openPasswordModal() {
+      document.getElementById('oldPassInput').value = '';
+      document.getElementById('newPassInput').value = '';
+      document.getElementById('confirmPassInput').value = '';
+      document.getElementById('passwordModal').classList.add('show');
+      toggleMenu(false);
+    }
+
+    function closePasswordModal() { document.getElementById('passwordModal').classList.remove('show'); }
+
+    function togglePasswordVisibility(inputId, btn) {
+      const input = document.getElementById(inputId);
+      if (input.type === "password") {
+        input.type = "text";
+        btn.innerText = "🔒";
+      } else {
+        input.type = "password";
+        btn.innerText = "👁️";
+      }
+    }
+
+    function submitPasswordChange() {
+      const oldP = document.getElementById('oldPassInput').value.trim();
+      const newP = document.getElementById('newPassInput').value.trim();
+      const confP = document.getElementById('confirmPassInput').value.trim();
+
+      if (!oldP) { alert("कृपया वर्तमान पासवर्ड दर्ज करें!"); return; }
+      if (oldP !== appPassword) { alert("❌ वर्तमान पासवर्ड गलत है!"); return; }
+      if (newP.length !== 6) { alert("⚠️ नया पासवर्ड ठीक 6 अंकों का होना चाहिए!"); return; }
+      if (newP !== confP) { alert("❌ नया पासवर्ड और दोबारा दर्ज किया पासवर्ड मेल नहीं खा रहे हैं!"); return; }
+
+      appPassword = newP;
+      localStorage.setItem('kirana_master_default_pin', newP);
+
+      closePasswordModal();
+      showUndoToast("✅ नया पासवर्ड अब आपका स्थायी डिफ़ॉल्ट बन गया है!");
+      vibrate([40, 30, 60]);
+    }
+
+    if (sessionStorage.getItem('kirana_is_unlocked') === 'true') {
+      document.getElementById('lockScreen').style.display = 'none';
+      document.getElementById('appContainer').style.display = 'flex';
+    }
+
+    // ================= दुकानदार की पर्चियां सिस्टम =================
+    const BILLS_KEY = 'kirana_shopkeeper_bills_db';
+    let bills = [];
+    let currentBillPhotoBase64 = "";
+
+    try {
+      bills = JSON.parse(localStorage.getItem(BILLS_KEY)) || [];
+    } catch(e) { bills = []; }
+
+    function saveBills() {
+      localStorage.setItem(BILLS_KEY, JSON.stringify(bills));
+      updateBillsBadge();
+    }
+
+    function updateBillsBadge() {
+      const bBadge = document.getElementById('billsMenuCount');
+      if (bBadge) bBadge.innerText = bills.length;
+    }
+
+    function openBillsModal() {
+      document.getElementById('billsModal').classList.add('show');
+      switchBillTab('saved');
+      toggleMenu(false);
+    }
+
+    function closeBillsModal() { document.getElementById('billsModal').classList.remove('show'); }
+
+    function switchBillTab(tab) {
+      const tabSaved = document.getElementById('tabSavedBills');
+      const tabNew = document.getElementById('tabNewBill');
+      const viewSaved = document.getElementById('billsListView');
+      const viewNew = document.getElementById('newBillFormView');
+
+      if (tab === 'saved') {
+        tabSaved.classList.add('active');
+        tabNew.classList.remove('active');
+        viewSaved.style.display = 'flex';
+        viewNew.style.display = 'none';
+        renderSavedBillsList();
+      } else {
+        tabNew.classList.add('active');
+        tabSaved.classList.remove('active');
+        viewNew.style.display = 'flex';
+        viewSaved.style.display = 'none';
+
+        if (!document.getElementById('billDateInput').value) {
+          const today = new Date().toISOString().split('T')[0];
+          document.getElementById('billDateInput').value = today;
+        }
+      }
+    }
+
+    function startBillFromChecked() {
+      const doneItems = items.filter(i => i.checked);
+      if (doneItems.length === 0) {
+        alert("पहले खरीदे गए सामान पर टिक (✓) लगाएं!");
+        return;
+      }
+
+      openBillsModal();
+      switchBillTab('new');
+
+      let billText = "";
+      let total = 0;
+      doneItems.forEach((item, idx) => {
+        const itemPrice = Number(item.price) || 0;
+        total += itemPrice;
+        billText += `${idx + 1}. ${item.name} ${item.qty ? `(${item.qty})` : ''} ${itemPrice ? `- ₹${itemPrice}` : ''}\n`;
+      });
+
+      document.getElementById('billItemsText').value = billText;
+      document.getElementById('billTotalAmount').value = total || '';
+      document.getElementById('billShopName').value = doneItems[0].cat !== 'अन्य' ? doneItems[0].cat + " स्टोर" : "";
+    }
+
+    function previewBillPhoto(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          currentBillPhotoBase64 = e.target.result;
+          const img = document.getElementById('billPhotoPreview');
+          img.src = currentBillPhotoBase64;
+          img.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function saveNewShopBill() {
+      const shopName = document.getElementById('billShopName').value.trim();
+      const billDate = document.getElementById('billDateInput').value;
+      const totalAmount = document.getElementById('billTotalAmount').value;
+      const itemsText = document.getElementById('billItemsText').value.trim();
+
+      if (!shopName) {
+        alert("कृपया दुकानदार या दुकान का नाम अवश्य लिखें!");
+        return;
+      }
+
+      const formattedDate = billDate ? new Date(billDate).toLocaleDateString('hi-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : getShortDate();
+
+      const newBill = {
+        id: Date.now(),
+        shopName: shopName,
+        date: formattedDate,
+        rawDate: billDate,
+        itemsText: itemsText || "विवरण उपलब्ध नहीं",
+        total: totalAmount ? Number(totalAmount) : 0,
+        photo: currentBillPhotoBase64,
+        createdAt: getDeletionFullTimestamp()
+      };
+
+      bills.unshift(newBill);
+      saveBills();
+
+      document.getElementById('billShopName').value = '';
+      document.getElementById('billTotalAmount').value = '';
+      document.getElementById('billItemsText').value = '';
+      document.getElementById('billPhotoInput').value = '';
+      document.getElementById('billPhotoPreview').style.display = 'none';
+      currentBillPhotoBase64 = "";
+
+      showUndoToast(`"${shopName}" की पर्ची सुरक्षित हो गई!`);
+      vibrate(40);
+      switchBillTab('saved');
+    }
+
+    function renderSavedBillsList() {
+      const container = document.getElementById('billsListView');
+      container.innerHTML = '';
+
+      if (bills.length === 0) {
+        container.innerHTML = `
+          <div style="text-align:center; padding:35px 10px; color:var(--text-muted);">
+            <span style="font-size:42px;">🧾</span>
+            <p style="margin-top:8px; font-weight:800;">अभी तक कोई पर्ची नहीं जोड़ी गई है।</p>
+            <small style="font-weight:600;">खरीदे गए सामान से या "नई पर्ची जोड़ें" से पर्ची बनाएं।</small>
+          </div>
+        `;
+        return;
+      }
+
+      bills.forEach(b => {
+        const card = document.createElement('div');
+        card.className = 'bill-card';
+        card.innerHTML = `
+          <div class="bill-header-row">
+            <div>
+              <span class="bill-shop-name">🏪 ${b.shopName}</span>
+              <div class="bill-date-stamp">📅 पर्ची तारीख: ${b.date}</div>
+            </div>
+            ${b.total ? `<span style="font-weight:900; font-size:17px; color:var(--primary);">₹${b.total}</span>` : ''}
+          </div>
+
+          <div class="bill-items-summary" style="white-space:pre-line; margin-top:4px;">
+            ${b.itemsText}
+          </div>
+
+          ${b.photo ? `<img src="${b.photo}" class="bill-photo-thumb" onclick="openFullImage('${b.photo}')" title="बड़ा देखने के लिए क्लिक करें">` : ''}
+
+          <div class="bill-actions-row">
+            <button class="action-sub-btn" style="flex:1; color:#0284c7; font-size:12px; font-weight:800;" onclick="shareBillOnWhatsApp(${b.id})">
+              📲 शेयर करें
+            </button>
+            <button class="action-sub-btn" style="flex:1; color:#d32f2f; font-size:12px; font-weight:800;" onclick="deleteShopBill(${b.id})">
+              ❌ पर्ची हटाएं
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function deleteShopBill(id) {
+      if (confirm("क्या आप इस दुकानदार की पर्ची को हटाना चाहते हैं?")) {
+        bills = bills.filter(b => b.id !== id);
+        saveBills();
+        renderSavedBillsList();
+        showUndoToast("पर्ची हटा दी गई!");
+        vibrate(35);
+      }
+    }
+
+    function shareBillOnWhatsApp(id) {
+      const b = bills.find(x => x.id === id);
+      if (!b) return;
+
+      let msg = `🧾 *दुकानदार पर्ची: ${b.shopName}*\n`;
+      msg += `📅 तारीख: ${b.date}\n\n`;
+      msg += `📋 *सामान का विवरण:*\n${b.itemsText}\n`;
+      if (b.total) msg += `\n💰 *कुल राशि:* ₹${b.total}\n`;
+
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    function openFullImage(src) {
+      const w = window.open("");
+      w.document.write(`<img src="${src}" style="max-width:100%; height:auto; border-radius:12px;">`);
+    }
+
+    // ================= रीसायकल बिन सिस्टम =================
+    const STORAGE_KEY = 'kirana_permanent_items_db';
+    const TRASH_KEY = 'kirana_trash_bin_items_db';
+    const INIT_KEY = 'kirana_system_initialized_flag';
+
+    let items = [];
+    let trashItems = [];
+
+    try {
+      trashItems = JSON.parse(localStorage.getItem(TRASH_KEY)) || [];
+    } catch(e) { trashItems = []; }
+
+    if (!localStorage.getItem(INIT_KEY)) {
+      items = [
+        { id: 1, name: "धनिया", qty: "100 ग्राम", price: 20, cat: "सब्जी मंडी", urgent: false, checked: false, date: getShortDate() },
+        { id: 2, name: "पार्ले-जी", qty: "2 पैकेट", price: 20, cat: "किराना", urgent: false, checked: true, date: getShortDate() },
+        { id: 3, name: "सर्फ़ एक्सेल", qty: "1 किलो", price: 140, cat: "किराना", urgent: true, checked: true, date: getShortDate() },
+        { id: 4, name: "चाय पत्ती", qty: "250 ग्राम", price: 90, cat: "किराना", urgent: false, checked: true, date: getShortDate() }
+      ];
+      localStorage.setItem(INIT_KEY, 'yes');
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    } else {
+      try {
+        items = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      } catch(e) { items = []; }
+    }
+
+    function saveAndRender() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+      renderItems();
+      updateTrashBadge();
+    }
+
+    function saveTrash() {
+      localStorage.setItem(TRASH_KEY, JSON.stringify(trashItems));
+      updateTrashBadge();
+    }
+
+    function updateTrashBadge() {
+      const countEl = document.getElementById('trashMenuCount');
+      if (countEl) countEl.innerText = trashItems.length;
+    }
+
+    function getDeletionFullTimestamp() {
+      const now = new Date();
+      const datePart = now.toLocaleDateString('hi-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+      const timePart = now.toLocaleTimeString('hi-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+      return `${datePart}, ${timePart}`;
+    }
+
+    function openTrashModal() {
+      renderTrashList();
+      document.getElementById('trashModal').classList.add('show');
+      toggleMenu(false);
+    }
+
+    function closeTrashModal() { document.getElementById('trashModal').classList.remove('show'); }
+
+    function renderTrashList() {
+      const container = document.getElementById('trashListContent');
+      container.innerHTML = '';
+
+      if (trashItems.length === 0) {
+        container.innerHTML = `
+          <div style="text-align:center; padding:35px 10px; color:var(--text-muted);">
+            <span style="font-size:42px;">🗑️</span>
+            <p style="margin-top:8px; font-weight:800;">रीसायकल बिन बिल्कुल खाली है!</p>
+          </div>
+        `;
+        return;
+      }
+
+      trashItems.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'trash-item';
+        div.innerHTML = `
+          <div class="trash-item-info">
+            <strong>${item.name}</strong>
+            <span>${item.qty ? item.qty + ' • ' : ''}${item.price ? '₹' + item.price + ' • ' : ''}${item.cat || ''}</span>
+            <span class="trash-date-badge">🗑️ हटाया: ${item.deletedAt || getDeletionFullTimestamp()}</span>
+          </div>
+          <div style="display:flex; gap:8px; margin-top:6px;">
+            <button class="action-sub-btn" style="color:var(--primary); font-size:12px; font-weight:800;" onclick="restoreFromTrash(${item.id})">
+              ↩ वापस लाएं
+            </button>
+            <button class="action-sub-btn" style="color:var(--danger); font-size:12px; font-weight:800;" onclick="permanentDeleteSingle(${item.id})">
+              ❌ हटाएं
+            </button>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function restoreFromTrash(id) {
+      const idx = trashItems.findIndex(i => i.id === id);
+      if (idx > -1) {
+        const itemToRestore = trashItems.splice(idx, 1)[0];
+        itemToRestore.checked = false;
+        items.unshift(itemToRestore);
+        saveAndRender();
+        saveTrash();
+        renderTrashList();
+        showUndoToast(`"${itemToRestore.name}" वापस आ गया!`);
+        vibrate(35);
+      }
+    }
+
+    function permanentDeleteSingle(id) {
+      const idx = trashItems.findIndex(i => i.id === id);
+      if (idx > -1) {
+        const name = trashItems[idx].name;
+        trashItems.splice(idx, 1);
+        saveTrash();
+        renderTrashList();
+        showUndoToast(`"${name}" हमेशा के लिए मिट गया!`);
+        vibrate([30, 30]);
+      }
+    }
+
+    function emptyTrashPermanently() {
+      if (trashItems.length === 0) { alert("रीसायकल बिन पहले से खाली है!"); return; }
+      if (confirm(`क्या आप रीसायकल बिन के सभी ${trashItems.length} सामान को हमेशा-हमेशा के लिए नष्ट करना चाहते हैं?`)) {
+        trashItems = [];
+        saveTrash();
+        renderTrashList();
+        showUndoToast("रीसायकल बिन साफ हो गई!");
+        vibrate([50, 40, 60]);
+      }
+    }
+
+    function deleteItem(id) {
+      const idx = items.findIndex(i => i.id === id);
+      if (idx > -1) {
+        const deleted = items.splice(idx, 1)[0];
+        deleted.deletedAt = getDeletionFullTimestamp();
+        trashItems.unshift(deleted);
+        saveAndRender();
+        saveTrash();
+        playBeep(300, 0.12);
+        vibrate(50);
+        showUndoToast(`"${deleted.name}" रीसायकल बिन में गया`);
+      }
+    }
+
+    function clearCompleted() {
+      const doneItems = items.filter(i => i.checked);
+      if (doneItems.length === 0) return;
+
+      if (confirm(`क्या आप खरीदे हुए सभी ${doneItems.length} सामान रीसायकल बिन में भेजना चाहते हैं?`)) {
+        const timestamp = getDeletionFullTimestamp();
+        const doneWithDate = doneItems.map(item => ({ ...item, deletedAt: timestamp }));
+        trashItems = [...doneWithDate, ...trashItems];
+        items = items.filter(i => !i.checked);
+        saveAndRender();
+        saveTrash();
+        showUndoToast("खरीदा सामान रीसायकल बिन में गया!");
+        vibrate(45);
+      }
+      toggleMenu(false);
+    }
+
+    // ================= सामान्य फंक्शन्स =================
+    let selectedCategory = 'सब';
+    let soundEnabled = true;
+    let wakeLockInstance = null;
+    let isCompletedCollapsed = false;
+    let budgetLimit = Number(localStorage.getItem('grocery_budget_limit')) || 0;
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playBeep(freq = 600, duration = 0.08) {
+      if (!soundEnabled) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch(e) {}
+    }
+
+    function playSuccessFanfare() {
+      if (!soundEnabled) return;
+      [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+        setTimeout(() => playBeep(freq, 0.18), i * 130);
+      });
+    }
+
+    function vibrate(ms = 35) { if (navigator.vibrate) navigator.vibrate(ms); }
+
+    async function toggleWakeLock() {
+      const btn = document.getElementById('wakeLockBtn');
+      if ('wakeLock' in navigator) {
+        try {
+          if (!wakeLockInstance) {
+            wakeLockInstance = await navigator.wakeLock.request('screen');
+            btn.classList.add('active-glow');
+            showUndoToast("💡 स्क्रीन लॉक रोक दिया गया!");
+          } else {
+            await wakeLockInstance.release();
+            wakeLockInstance = null;
+            btn.classList.remove('active-glow');
+            showUndoToast("सामान्य स्क्रीन टाइमआउट चालू।");
+          }
+        } catch(e) {}
+      }
+    }
+
+    function fireConfetti() {
+      const canvas = document.getElementById('confettiCanvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      const particles = [];
+      const colors = ['#e53935', '#2e7d32', '#f59e0b', '#1976d2', '#8e24aa'];
+
+      for (let i = 0; i < 80; i++) {
+        particles.push({
+          x: canvas.width / 2,
+          y: canvas.height / 2,
+          vx: (Math.random() - 0.5) * 14,
+          vy: (Math.random() - 0.7) * 16,
+          size: Math.random() * 8 + 4,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          gravity: 0.35,
+          alpha: 1
+        });
+      }
+
+      function render() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let alive = false;
+        particles.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += p.gravity;
+          p.alpha -= 0.012;
+          if (p.alpha > 0) {
+            alive = true;
+            ctx.fillStyle = p.color;
+            ctx.globalAlpha = p.alpha;
+            ctx.fillRect(p.x, p.y, p.size, p.size);
+          }
+        });
+        if (alive) requestAnimationFrame(render);
+        else ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+      render();
+    }
+
+    function setHeaderDate() {
+      const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+      document.getElementById('todayDate').innerText = `📅 ${new Date().toLocaleDateString('hi-IN', options)}`;
+    }
+
+    function getShortDate() {
+      return new Date().toLocaleDateString('hi-IN', { day: 'numeric', month: 'short' });
+    }
+
+    function parseSmartInput(rawText) {
+      let text = rawText.trim();
+      let qty = "";
+      let price = 0;
+
+      const priceMatch = text.match(/(?:₹|rs|\s+)?(\d+(?:\.\d+)?)\s*(?:₹|रु|रुपये|rs)?$/i);
+      if (priceMatch && !text.match(/(?:किलो|kg|ग्राम|gm|g|लीटर|ltr|l|पैकेट|pkt)\s*(\d+)$/i)) {
+        price = Number(priceMatch[1]);
+        text = text.substring(0, priceMatch.index).trim();
+      }
+
+      const qtyPattern = /^(\d+(?:\.\d+)?\s*(?:किलो|किग्रा|kg|ग्राम|gm|g|लीटर|ltr|l|पैकेट|pkt|दर्जन|doz|बोतल|पाव))\s*(.+)$/i;
+      const match = text.match(qtyPattern);
+      if (match) {
+        qty = match[1];
+        text = match[2];
+      }
+
+      return { name: text || rawText, qty, price };
+    }
+
+    function renderItems() {
+      const pendingList = document.getElementById('pendingList');
+      const completedList = document.getElementById('completedList');
+      const completedDivider = document.getElementById('completedDivider');
+      const searchQuery = document.getElementById('searchInput').value.trim().toLowerCase();
+
+      pendingList.innerHTML = '';
+      completedList.innerHTML = '';
+
+      let totalCost = 0;
+      let spentCost = 0;
+      let doneCount = 0;
+
+      const sortedItems = [...items].sort((a, b) => (b.urgent ? 1 : 0) - (a.urgent ? 1 : 0));
+
+      const filtered = sortedItems.filter(item => {
+        const matchesSearch = item.name.toLowerCase().includes(searchQuery);
+        const matchesCat = (selectedCategory === 'सब') || (item.cat === selectedCategory);
+        return matchesSearch && matchesCat;
+      });
+
+      items.forEach(item => {
+        const price = Number(item.price) || 0;
+        totalCost += price;
+        if (item.checked) {
+          spentCost += price;
+          doneCount++;
+        }
+      });
+
+      filtered.forEach(item => {
+        const itemEl = document.createElement('div');
+        itemEl.className = `list-item ${item.checked ? 'done' : ''} ${item.urgent ? 'urgent' : ''}`;
+        
+        itemEl.innerHTML = `
+          <div class="item-left" onclick="toggleItem(${item.id})">
+            <div class="checkbox ${item.checked ? 'checked' : 'unchecked'}"></div>
+            <div class="item-info">
+              <div class="item-title-row">
+                <span class="item-text">${item.name}</span>
+                ${item.qty ? `<span class="badge badge-qty">${item.qty}</span>` : ''}
+                ${item.price ? `<span class="badge badge-price">₹${item.price}</span>` : ''}
+                ${item.cat ? `<span class="badge badge-shop">${item.cat}</span>` : ''}
+                ${item.urgent ? `<span class="badge badge-urgent">⭐ जरूरी</span>` : ''}
+              </div>
+              <span style="font-size:11px; color:var(--text-muted); font-weight:700;">📅 ${item.date || getShortDate()}</span>
+            </div>
+          </div>
+          <div class="item-actions">
+            <button class="action-sub-btn" onclick="openEdit(${item.id})" title="सुधारें">✏️</button>
+            <button class="action-sub-btn" onclick="deleteItem(${item.id})" title="हटाएं">❌</button>
+          </div>
+        `;
+
+        if (item.checked) completedList.appendChild(itemEl);
+        else pendingList.appendChild(itemEl);
+      });
+
+      document.getElementById('totalBudget').innerText = `₹${totalCost}`;
+      document.getElementById('spentBudget').innerText = `₹${spentCost}`;
+      document.getElementById('pendingBudget').innerText = `₹${totalCost - spentCost}`;
+
+      const card = document.getElementById('dashboardCard');
+      const alertBox = document.getElementById('budgetAlert');
+      const targetDisplay = document.getElementById('targetBudgetDisplay');
+
+      if (budgetLimit > 0) {
+        targetDisplay.innerText = `(लक्ष्य: ₹${budgetLimit})`;
+        if (totalCost > budgetLimit) {
+          card.classList.add('overbudget');
+          alertBox.style.display = 'block';
+          alertBox.innerText = `⚠️ कुल खर्च बजट से ₹${totalCost - budgetLimit} ज्यादा हो रहा है!`;
+        } else {
+          card.classList.remove('overbudget');
+          alertBox.style.display = 'none';
+        }
+      } else {
+        targetDisplay.innerText = `(बजट सेट करें)`;
+        card.classList.remove('overbudget');
+        alertBox.style.display = 'none';
+      }
+
+      const totalItems = items.length;
+      const progressPercent = totalItems > 0 ? Math.round((doneCount / totalItems) * 100) : 0;
+      document.getElementById('statItems').innerText = `कुल सामान: ${totalItems} (बाकी: ${totalItems - doneCount})`;
+      document.getElementById('statProgress').innerText = `${progressPercent}% पूर्ण`;
+      document.getElementById('progressBar').style.width = `${progressPercent}%`;
+
+      if (doneCount > 0) {
+        completedDivider.style.display = 'flex';
+        document.getElementById('completedDividerTitle').innerText = `खरीदा सामान (${doneCount})`;
+        document.getElementById('completedDividerArrow').innerText = isCompletedCollapsed ? '▶' : '▼';
+        completedList.style.display = isCompletedCollapsed ? 'none' : 'block';
+      } else {
+        completedDivider.style.display = 'none';
+        completedList.style.display = 'none';
+      }
+    }
+
+    function toggleCompletedSection() {
+      isCompletedCollapsed = !isCompletedCollapsed;
+      renderItems();
+    }
+
+    function addSmartItem() {
+      const input = document.getElementById('smartInput');
+      const raw = input.value.trim();
+      if (!raw) return;
+
+      const parsed = parseSmartInput(raw);
+
+      items.unshift({
+        id: Date.now(),
+        name: parsed.name,
+        qty: parsed.qty,
+        price: parsed.price,
+        cat: 'किराना',
+        urgent: false,
+        checked: false,
+        date: getShortDate()
+      });
+
+      input.value = '';
+      playBeep(800, 0.1);
+      vibrate(40);
+      saveAndRender();
+    }
+
+    function quickAdd(name, qty, cat) {
+      items.unshift({
+        id: Date.now(),
+        name: name,
+        qty: qty,
+        price: 0,
+        cat: cat,
+        urgent: false,
+        checked: false,
+        date: getShortDate()
+      });
+      playBeep(750, 0.08);
+      vibrate(30);
+      saveAndRender();
+    }
+
+    function toggleItem(id) {
+      let allDoneBefore = items.length > 0 && items.every(i => i.checked);
+
+      items = items.map(item => {
+        if (item.id === id) {
+          const next = !item.checked;
+          playBeep(next ? 900 : 450, 0.08);
+          vibrate(next ? 45 : 25);
+          return { ...item, checked: next };
+        }
+        return item;
+      });
+
+      const allDoneNow = items.length > 0 && items.every(i => i.checked);
+      if (!allDoneBefore && allDoneNow) {
+        fireConfetti();
+        playSuccessFanfare();
+        vibrate([100, 50, 100, 50, 200]);
+        setTimeout(() => showUndoToast("🎉 बधाई! सारी खरीदारी पूरी हो गई!"), 250);
+      }
+
+      saveAndRender();
+    }
+
+    function showUndoToast(msg) {
+      const toast = document.getElementById('undoToast');
+      document.getElementById('undoMsg').innerText = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 4500);
+    }
+
+    function undoLastAction() {
+      if (trashItems.length > 0) {
+        const restored = trashItems.shift();
+        items.unshift(restored);
+        saveAndRender();
+        saveTrash();
+        document.getElementById('undoToast').classList.remove('show');
+        vibrate(35);
+      }
+    }
+
+    function startVoiceInput() {
+      const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!Speech) { alert("माइक इनपुट उपलब्ध नहीं है।"); return; }
+      const rec = new Speech();
+      rec.lang = 'hi-IN';
+      const btn = document.getElementById('micBtn');
+
+      rec.onstart = () => { btn.classList.add('listening'); vibrate(50); };
+      rec.onend = () => btn.classList.remove('listening');
+      rec.onresult = (e) => {
+        document.getElementById('smartInput').value = e.results[0][0].transcript;
+        addSmartItem();
+      };
+      rec.start();
+    }
+
+    function setCategoryFilter(cat) {
+      selectedCategory = cat;
+      document.querySelectorAll('.cat-chip').forEach(c => c.classList.toggle('active', c.innerText === cat));
+      renderItems();
+    }
+
+    function openBudgetModal() {
+      document.getElementById('budgetInputModal').value = budgetLimit || '';
+      document.getElementById('budgetModal').classList.add('show');
+      toggleMenu(false);
+    }
+    function closeBudgetModal() { document.getElementById('budgetModal').classList.remove('show'); }
+    function saveBudgetLimit() {
+      budgetLimit = Number(document.getElementById('budgetInputModal').value) || 0;
+      localStorage.setItem('grocery_budget_limit', budgetLimit);
+      closeBudgetModal();
+      saveAndRender();
+    }
+
+    function openEdit(id) {
+      const item = items.find(i => i.id === id);
+      if (!item) return;
+      document.getElementById('editId').value = item.id;
+      document.getElementById('editName').value = item.name;
+      document.getElementById('editQty').value = item.qty || '';
+      document.getElementById('editPrice').value = item.price || '';
+      document.getElementById('editCat').value = item.cat || 'किराना';
+      document.getElementById('editModal').classList.add('show');
+    }
+    function closeEditModal() { document.getElementById('editModal').classList.remove('show'); }
+    function saveEdit() {
+      const id = Number(document.getElementById('editId').value);
+      items = items.map(i => {
+        if (i.id === id) {
+          return {
+            ...i,
+            name: document.getElementById('editName').value.trim() || i.name,
+            qty: document.getElementById('editQty').value.trim(),
+            price: Number(document.getElementById('editPrice').value) || 0,
+            cat: document.getElementById('editCat').value
+          };
+        }
+        return i;
+      });
+      closeEditModal();
+      saveAndRender();
+    }
+
+    function confirmResetForNextMonth() {
+      if (confirm("क्या आप सारे सामान को अनचेक करके नए महीने की ताज़ा लिस्ट बनाना चाहते हैं?")) {
+        items = items.map(i => ({ ...i, checked: false, date: getShortDate() }));
+        saveAndRender();
+        showUndoToast("🎉 लिस्ट नए महीने के लिए तैयार है!");
+      }
+      toggleMenu(false);
+    }
+
+    function confirmClearAll() {
+      if (confirm("क्या आप पूरी सूची खाली करके सारा सामान रीसायकल बिन में भेजना चाहते हैं?")) {
+        const timestamp = getDeletionFullTimestamp();
+        const itemsWithDate = items.map(item => ({ ...item, deletedAt: timestamp }));
+        trashItems = [...itemsWithDate, ...trashItems];
+        items = [];
+        saveAndRender();
+        saveTrash();
+        showUndoToast("पूरी सूची रीसायकल बिन में चली गई!");
+      }
+      toggleMenu(false);
+    }
+
+    function getFormattedText() {
+      let txt = `🛒 *किराने की सूची (${new Date().toLocaleDateString('hi-IN')})*\n`;
+      const pending = items.filter(i => !i.checked);
+      if (pending.length) {
+        txt += "\n📌 *खरीदना बाकी है:*\n";
+        pending.forEach((i, idx) => {
+          txt += `${idx + 1}. ${i.name} ${i.qty ? `(${i.qty})` : ''} ${i.price ? `- ₹${i.price}` : ''} [${i.cat}]\n`;
+        });
+      }
+      const done = items.filter(i => i.checked);
+      if (done.length) {
+        txt += "\n✅ *खरीदा जा चुका सामान:*\n";
+        done.forEach((i, idx) => {
+          txt += `~${idx + 1}. ${i.name} ${i.qty ? `(${i.qty})` : ''}~\n`;
+        });
+      }
+      return txt;
+    }
+
+    function shareWhatsApp() {
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(getFormattedText())}`, '_blank');
+    }
+
+    function copyListText() {
+      navigator.clipboard.writeText(getFormattedText()).then(() => showUndoToast("📋 लिस्ट कॉपी हो गई!"));
+    }
+
+    function sortItems(type) {
+      if (type === 'name') items.sort((a, b) => a.name.localeCompare(b.name));
+      if (type === 'price') items.sort((a, b) => (b.price || 0) - (a.price || 0));
+      saveAndRender();
+      toggleMenu(false);
+    }
+
+    function exportJSON() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ items, trashItems, bills }));
+      const a = document.createElement('a');
+      a.href = dataStr;
+      a.download = `kirana_${Date.now()}.json`;
+      a.click();
+      toggleMenu(false);
+    }
+
+    function importJSON(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const parsed = JSON.parse(event.target.result);
+          if (Array.isArray(parsed)) items = parsed;
+          else {
+            items = parsed.items || [];
+            trashItems = parsed.trashItems || [];
+            bills = parsed.bills || [];
+          }
+          saveAndRender();
+          saveTrash();
+          saveBills();
+          showUndoToast("डेटा लोड हो गया!");
+        } catch(err) { alert("अमान्य फ़ाइल!"); }
+      };
+      reader.readAsText(file);
+      toggleMenu(false);
+    }
+
+    function toggleTheme() {
+      const isDark = document.body.classList.toggle('dark-mode');
+      localStorage.setItem('grocery_theme', isDark ? 'dark' : 'light');
+    }
+    if (localStorage.getItem('grocery_theme') === 'dark') document.body.classList.add('dark-mode');
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      document.getElementById('soundBtn').innerText = soundEnabled ? '🔔' : '🔕';
+    }
+
+    function toggleMenu(force) {
+      const menu = document.getElementById('dropdownMenu');
+      if (force === false) menu.classList.remove('show');
+      else menu.classList.toggle('show');
+    }
+
+    window.onclick = (e) => {
+      if (!e.target.closest('.header-actions') && !e.target.closest('.dropdown-menu')) {
+        toggleMenu(false);
+      }
+    };
+
+    document.getElementById('smartInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') addSmartItem(); });
+
+    setHeaderDate();
+    renderItems();
+    updateTrashBadge();
+    updateBillsBadge();
+  </script>
+</body>
+</html>
